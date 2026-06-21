@@ -1,173 +1,166 @@
 # block_pin_user
 
-Bloc Moodle qui affiche, sur la page **Participants** d'un cours, la liste des
-inscrits actifs avec jusqu'à six badges conditionnels basés sur des champs de
-profil personnalisés (ex. allergies, PAI, statut, etc.).
+Moodle block that displays, on a course's **Participants** page, the list of
+active enrolled users with up to six conditional badges based on custom
+profile fields (e.g. allergies, special accommodations, status, etc.).
 
 ## Installation
 
-1. Copier ce dossier dans `blocks/pin_user` de votre installation Moodle.
-2. Aller dans *Administration du site > Notifications* pour terminer
-   l'installation.
-3. Ajouter le bloc « Repérer un utilisateur » sur la page Participants d'un
-   cours (le bloc ne peut être ajouté que dans le contexte d'un cours).
+1. Copy this folder into `blocks/pin_user` of your Moodle installation.
+2. Go to *Site administration > Notifications* to complete the
+   installation.
+3. Add the "Pin User" block to a course's Participants page (the block can
+   only be added within a course context).
 
 ## Configuration
 
-Les réglages se trouvent dans *Administration du site > Blocs > Repérer un
-utilisateur*, sur une seule page.
+Settings live under *Site administration > Blocks > Pin User*, on a single
+page.
 
-Pour chaque badge, la condition principale (champ, condition, valeur) est
-toujours visible. La **seconde condition optionnelle (ET/OU)** est repliée
-par défaut derrière un petit lien **« Combiner avec une seconde condition
-(ET/OU) »**, juste sous le champ de valeur de comparaison — un clic suffit
-pour la déplier. Si un badge a déjà une seconde condition configurée, cette
-section s'affiche dépliée d'emblée. Ce repli utilise l'élément HTML natif
-`<details>`/`<summary>` : aucun JavaScript n'est nécessaire, et les valeurs
-restent soumises avec le formulaire même quand la section est repliée.
+For each badge, the main condition (field, condition, value) is always
+visible. The **optional second condition (AND/OR)** is collapsed by default
+behind a small **"Combine with a second condition (AND/OR)"** link, right
+below the comparison value field — one click expands it. If a badge already
+has a second condition configured, that section is shown expanded by
+default. This collapsing uses the native HTML `<details>`/`<summary>`
+element: no JavaScript is required, and the values are still submitted with
+the form even while the section is collapsed.
 
-Vous pouvez configurer jusqu'à **6 badges** (constante `MAX_BADGES` dans
-`classes/badge_config.php`, modifiable par un développeur si besoin). Chaque
-badge inutilisé peut simplement rester sur **« Aucun »** — il n'apparaît
-alors nulle part, ni dans la page de réglages au moment de l'enregistrement,
-ni dans le rendu.
+You can configure up to **6 badges** (the `MAX_BADGES` constant in
+`classes/badge_config.php`, which a developer can change if needed). Any
+unused badge can simply be left on **"None"** — it then appears nowhere,
+neither on the settings page once saved nor in the rendered block.
 
-Pour chaque badge, vous choisissez :
+For each badge, you choose:
 
-- **Nom du badge** (optionnel) : un nom plus explicite que le texte affiché
-  sur le badge, utilisé dans les liens d'export et les en-têtes du CSV
-  (ex. « Élève à besoins spécifiques » alors que le badge à l'écran affiche
-  juste « EBS »). Laissez vide pour réutiliser le texte du badge.
-- **Champ de profil** : un menu déroulant listant les champs de profil
-  personnalisés qui existent réellement sur le site. La valeur **« Aucun »**
-  désactive entièrement le badge — c'est la valeur par défaut, pour qu'un
-  badge ne s'affiche jamais sans avoir été explicitement configuré.
-- **Condition** : vide / non vide / égal à / contient / ne contient pas.
-- **Valeur de comparaison** : utilisée par « égal à », « contient » et « ne
-  contient pas ».
-- **Condition supplémentaire (optionnelle, repliée par défaut)** : un
-  second champ de profil, avec sa propre condition et valeur, combiné au
-  premier via **ET** ou **OU**. Laissez ce second champ sur « Aucun »
-  (valeur par défaut) pour n'utiliser qu'une seule condition — c'est le
-  comportement historique du plugin, garanti inchangé pour tout badge déjà
-  configuré.
-- **Icône** (optionnelle) : à choisir dans une liste d'émojis courants
-  (⚠️ ❤️ ✚ ♿ ⭐ 🚩 ℹ️ ✅ 🔔 🔒). Volontairement de simples caractères Unicode
-  plutôt que des icônes Font Awesome ou Moodle (`pix_icon`) : leur rendu ne
-  dépend ni du thème, ni de la version de Moodle, contrairement à un nom de
-  classe ou d'identifiant d'icône.
-- **Texte** : peut rester vide si l'icône suffit à elle seule (un badge
-  icône seule reste accessible : un libellé est automatiquement annoncé aux
-  lecteurs d'écran).
-- **Couleurs** du badge.
+- **Badge name** (optional): a clearer name than the text shown on the
+  badge itself, used in export links and CSV headers (e.g. "Special
+  educational needs" while the on-screen badge just shows "SEN"). Leave
+  empty to reuse the badge text instead.
+- **Profile field**: a dropdown listing the custom profile fields that
+  actually exist on the site. The **"None"** value disables the badge
+  entirely — this is also the default, so a badge never shows up without
+  having been explicitly configured.
+- **Condition**: is empty / is not empty / equals / contains / does not
+  contain.
+- **Comparison value**: used by "equals", "contains" and "does not
+  contain".
+- **Additional condition (optional, collapsed by default)**: a second
+  profile field, with its own condition and value, combined with the first
+  via **AND** or **OR**. Leave this second field on "None" (the default) to
+  use a single condition only — this is the plugin's original behaviour,
+  guaranteed unchanged for any badge already configured.
+- **Icon** (optional): chosen from a list of common emoji
+  (⚠️ ❤️ ✚ ♿ ⭐ 🚩 ℹ️ ✅ 🔔 🔒). Deliberately plain Unicode characters rather
+  than Font Awesome or Moodle icons (`pix_icon`): their rendering doesn't
+  depend on the theme or the Moodle version, unlike a class name or icon
+  identifier.
+- **Text**: can be left empty if the icon is enough on its own (an
+  icon-only badge stays accessible: a label is automatically announced to
+  screen readers).
+- Badge **colours**.
 
-> **Compatibilité ascendante** : les badges 1 et 2 utilisent exactement les
-> mêmes noms de réglages que dans les versions précédentes
-> (`profilefield1`, `text1`, etc.). Si vous mettez à jour depuis une version
-> antérieure, votre configuration existante est conservée telle quelle —
-> rien à reconfigurer.
+> **Backward compatibility**: badges 1 and 2 use exactly the same setting
+> names as in previous versions (`profilefield1`, `text1`, etc.). If you
+> are upgrading from an earlier version, your existing configuration is
+> kept as-is — nothing to reconfigure.
 
-### Créer un nouveau champ de profil sans quitter la page
+### Creating a new profile field without leaving the page
 
-En haut de la page de réglages, un bouton **« Gérer les champs de profil
-personnalisés »** ouvre directement la page d'administration Moodle
-correspondante (`/user/profile/index.php`) dans un nouvel onglet, avec un
-rappel des champs déjà existants. Une fois le champ créé, revenez sur cet
-onglet et rafraîchissez la page de réglages : il apparaîtra dans les menus
-déroulants.
+At the top of the settings page, a **"Manage custom profile fields"**
+button opens Moodle's own admin page for this (`/user/profile/index.php`)
+in a new tab, along with a reminder of the fields that already exist. Once
+the field is created, come back to this tab and refresh the settings page:
+it will appear in the dropdowns.
 
-> Ce plugin ne réimplémente pas la création de champs de profil dans sa
-> propre interface : Moodle dispose déjà d'un formulaire complet et
-> maintenu pour cela. Dupliquer cette fonctionnalité ajouterait de la
-> maintenance et des risques de divergence avec le core à chaque nouvelle
-> version de Moodle, pour un bénéfice limité par rapport à un simple lien
-> direct.
+> This plugin does not reimplement profile field creation in its own
+> interface: Moodle already has a complete, maintained form for that.
+> Duplicating that functionality would add maintenance overhead and a risk
+> of drifting out of sync with core on every new Moodle version, for
+> limited benefit over a simple direct link.
 
 ## Permissions
 
-Deux capacités contrôlent deux choses différentes :
+Two capabilities control two different things:
 
-| Capacité | Contrôle | Par défaut |
+| Capability | Controls | Default |
 |---|---|---|
-| `block/pin_user:addinstance` / `:myaddinstance` | Qui peut **ajouter** le bloc sur une page de cours / sur Mon Moodle. | Enseignant (édition), Manager |
-| `block/pin_user:viewbadges` | Qui peut **voir le contenu** du bloc (la liste + les badges), une fois qu'il est ajouté. | Enseignant (édition), Manager |
+| `block/pin_user:addinstance` / `:myaddinstance` | Who can **add** the block to a course page / to My Moodle. | Teacher (editing), Manager |
+| `block/pin_user:viewbadges` | Who can **see the block's content** (the list + the badges), once it has been added. | Teacher (editing), Manager |
 
-Ce sont deux portes indépendantes : avoir le droit d'ajouter le bloc ne donne
-pas automatiquement le droit d'en voir le contenu, et inversement.
+These are two independent gates: being allowed to add the block does not
+automatically grant the right to see its content, and vice versa.
 
-`viewbadges` est une capacité dédiée, séparée de
-`moodle/course:manageactivities` (utilisée par la v1.0), afin de pouvoir
-restreindre la visibilité des badges indépendamment des droits de gestion du
-cours — utile si les champs de profil affichés sont sensibles.
+`viewbadges` is a dedicated capability, separate from
+`moodle/course:manageactivities` (used by v1.0), so that badge visibility
+can be restricted independently of course-management permissions — useful
+when the displayed profile fields are sensitive.
 
-### Sur une installation neuve
+### On a fresh install
 
-Rien à faire : Moodle lit `db/access.php` à l'installation et attribue
-automatiquement les deux capacités aux rôles Enseignant et Manager.
+Nothing to do: Moodle reads `db/access.php` at install time and
+automatically grants both capabilities to the Teacher and Manager roles.
 
-### Sur une mise à jour depuis la v1.0
+### When upgrading from v1.0
 
-⚠️ Point important, facilement manqué :
+⚠️ An important point that's easy to miss:
 
-- **`viewbadges` (nouvelle capacité)** → Moodle la crée et l'attribue
-  automatiquement aux rôles Enseignant/Manager pendant la mise à jour. Rien à
-  faire, sauf si vous voulez aussi l'accorder à un autre rôle.
-- **`addinstance` / `myaddinstance` (capacités déjà existantes)** → la v2.0.0
-  corrige l'archétype par défaut (`teacher` → `editingteacher`, c'est-à-dire
-  le rôle Enseignant standard plutôt que le rôle Enseignant non-éditeur).
-  **Moodle ne réapplique pas ce changement automatiquement** sur les
-  capacités déjà présentes en base de données — c'est volontaire, pour ne
-  pas écraser des permissions que vous auriez personnalisées. Si vous mettez
-  à jour depuis la v1.0, vérifiez/accordez manuellement ces deux capacités au
-  rôle Enseignant :
+- **`viewbadges` (new capability)** → Moodle creates it and automatically
+  grants it to the Teacher/Manager roles during the upgrade. Nothing to do,
+  unless you also want to grant it to another role.
+- **`addinstance` / `myaddinstance` (already-existing capabilities)** →
+  v2.0.0 corrects the default archetype (`teacher` → `editingteacher`, i.e.
+  the standard Teacher role rather than the non-editing Teacher role).
+  **Moodle does not automatically re-apply this change** to capabilities
+  already present in the database — this is intentional, so as not to
+  overwrite permissions you may have customised. If you are upgrading from
+  v1.0, manually check/grant these two capabilities to the Teacher role:
 
-  *Administration du site → Utilisateurs → Permissions → Définir les rôles →
-  Enseignant → rechercher `block/pin_user:addinstance` et
-  `block/pin_user:myaddinstance` → Autoriser.*
+  *Site administration → Users → Permissions → Define roles → Teacher →
+  search for `block/pin_user:addinstance` and `block/pin_user:myaddinstance`
+  → Allow.*
 
-Deux rappels sont intégrés au plugin pour ne pas que ça passe inaperçu :
-- Un message d'avertissement s'affiche automatiquement juste après la mise à
-  jour **si elle est faite via l'interface web** (`db/upgrade.php`). Il ne
-  s'affichera pas pour une mise à jour en ligne de commande
-  (`admin/cli/upgrade.php`).
-- Un rappel permanent figure en haut de la page de réglages du plugin, avec
-  un raccourci direct vers *Définir les rôles*, visible quel que soit le mode
-  de mise à jour utilisé.
+Two reminders are built into the plugin so this doesn't go unnoticed:
+- A warning message is shown automatically right after the upgrade **if it
+  is performed through the web UI** (`db/upgrade.php`). It will not be
+  shown for a command-line upgrade (`admin/cli/upgrade.php`).
+- A permanent reminder appears at the top of the plugin's settings page,
+  with a direct shortcut to *Define roles*, visible regardless of how the
+  upgrade was performed.
 
-## ⚠️ Note sur les données sensibles
+## ⚠️ Note on sensitive data
 
-Les champs de profil utilisés par ce bloc peuvent contenir des informations
-sensibles (ex. informations de santé). Le bloc ne **stocke** aucune donnée
-(voir `classes/privacy/provider.php`), mais il **affiche** ces informations à
-toute personne disposant de la capacité `block/pin_user:viewbadges`. Pensez à
-vérifier qui dispose de cette capacité sur votre site avant d'utiliser ce
-plugin pour des champs sensibles.
+The profile fields used by this block may contain sensitive information
+(e.g. health information). The block does not **store** any data of its
+own (see `classes/privacy/provider.php`), but it does **display** that
+information to anyone holding the `block/pin_user:viewbadges` capability.
+Make sure to review who holds this capability on your site before using
+this plugin with sensitive fields.
 
-## Export CSV
+## CSV export
 
-Un lien **« Exporter »** apparaît au-dessus de la liste des participants,
-visible par toute personne disposant de `block/pin_user:viewbadges` (le
-même droit que pour voir les badges à l'écran) :
+An **"Export"** link appears above the participant list, visible to anyone
+holding `block/pin_user:viewbadges` (the same right needed to see the
+badges on screen):
 
-- **Tous les participants (CSV)** : nom, e-mail, puis une colonne par badge
-  configuré, contenant **la valeur réelle du champ de profil** lorsque le
-  badge s'applique (ex. « Arachides, gluten »), « Oui » si le badge
-  s'applique mais que le champ est vide (cas d'une condition « doit être
-  vide »), ou une cellule vide si le badge ne s'applique pas.
-- **Un lien par badge** (libellé = texte du badge) : uniquement les
-  participants pour qui ce badge précis s'applique, avec une colonne
-  « Valeur » (et une seconde colonne si une condition supplémentaire est
-  configurée pour ce badge).
+- **All participants (CSV)**: name, email, then one column per configured
+  badge, containing **the actual profile field value** when the badge
+  applies (e.g. "Peanuts, gluten"), "Yes" if the badge applies but the
+  field itself is empty (an "is empty" condition), or a blank cell if the
+  badge does not apply.
+- **One link per badge** (label = the badge's name): only the participants
+  for whom that specific badge applies, with a "Value" column (and a
+  second column if an additional condition is configured for that badge).
 
-Le fichier est encodé en UTF-8 avec BOM et utilise le point-virgule comme
-séparateur (convention Excel en français). L'export réutilise exactement la
-même logique de correspondance que l'affichage à l'écran (classe
-`badge_matcher`), donc la liste exportée ne peut jamais diverger de ce qui
-est affiché dans le bloc.
+The file is UTF-8 encoded with a BOM and uses a semicolon as the
+separator (the convention for Excel in French locales). The export reuses
+the exact same matching logic as the on-screen display (the
+`badge_matcher` class), so the exported list can never drift out of sync
+with what the block shows.
 
-> ⚠️ Ce fichier peut contenir des données sensibles (mêmes données que les
-> badges affichés). Traitez-le selon les règles de protection des données
-> de votre établissement.
+> ⚠️ This file may contain sensitive data (the same data shown in the
+> badges). Handle it according to your institution's data protection
+> rules.
 
 ## Tests
 
@@ -175,81 +168,78 @@ est affiché dans le bloc.
 vendor/bin/phpunit --filter block_pin_user
 ```
 
-`tests/condition_evaluator_test.php` couvre la logique des conditions de
-badge de façon isolée. `tests/renderer_test.php` vérifie le rendu HTML,
-y compris l'échappement du texte des badges.
+`tests/condition_evaluator_test.php` covers the badge condition logic in
+isolation. `tests/renderer_test.php` checks the HTML output, including
+badge text escaping.
 
 ## Changelog
 
 ### v2.5.1
-- Retour sur l'approche « page séparée » de la v2.5.0, jugée peu lisible :
-  la seconde condition (ET/OU) de chaque badge est maintenant un petit lien
-  repliable (`<details>`/`<summary>`, sans JavaScript) directement sous le
-  champ de valeur de comparaison, plutôt que sur une page à part.
-- Aucun impact sur la configuration existante.
-- Tests ajoutés pour la validation/stockage de ce nouveau composant.
+- Reverted the "separate page" approach from v2.5.0, which turned out to
+  be hard to follow: each badge's second condition (AND/OR) is now a small
+  collapsible link (`<details>`/`<summary>`, no JavaScript) right below the
+  comparison value field, instead of living on a separate page.
+- No impact on existing configuration.
+- Added tests for this new component's validation/storage logic.
 
 ### v2.4.1
-- Correctifs suite au passage du Moodle Code Checker :
-  - Chaînes de langue remises en ordre alphabétique strict (les paires
-    `*_button` / `*_desc` n'étaient pas correctement ordonnées).
-  - Suppression de `defined('MOODLE_INTERNAL') || die();` là où il n'est
-    plus nécessaire (classes autochargées, `lib.php`, `db/upgrade.php`).
-  - Docblocks complétés (description manquante sur plusieurs méthodes).
-  - Commentaires en ligne mis en majuscule en début de phrase.
+- Fixes following a pass with the Moodle Code Checker:
+  - Language strings put back into strict alphabetical order (the
+    `*_button` / `*_desc` pairs were not correctly ordered).
+  - Removed `defined('MOODLE_INTERNAL') || die();` where it is no longer
+    needed (autoloaded classes, `lib.php`, `db/upgrade.php`).
+  - Completed docblocks (missing description on several methods).
+  - Inline comments capitalised at the start of the sentence.
 
 ### v2.4.0
-- Ajout d'un champ « Nom du badge » optionnel, distinct du texte affiché
-  sur le badge, utilisé pour les liens d'export et les en-têtes du CSV.
-- L'intitulé de chaque section de réglages affiche désormais ce nom une
-  fois configuré, pour se repérer plus facilement sur une longue page.
+- Added an optional "Badge name" field, separate from the text shown on
+  the badge, used for export links and CSV headers.
+- Each settings section's heading now shows this name once configured, to
+  make it easier to find your way around a long settings page.
 
 ### v2.3.1
-- L'export CSV affiche désormais la valeur réelle du champ de profil
-  (ex. « Arachides, gluten ») au lieu d'un simple Oui/Non, avec un repli sur
-  « Oui » quand le badge correspond mais que le champ est vide.
-- L'export par badge unique gagne une colonne « Valeur » (et une seconde
-  colonne si une condition supplémentaire est configurée).
+- The CSV export now shows the actual profile field value (e.g. "Peanuts,
+  gluten") instead of a plain Yes/No, falling back to "Yes" when the badge
+  matches but the field itself is empty.
+- The single-badge export gains a "Value" column (and a second column if
+  an additional condition is configured).
 
 ### v2.3.0
-- Ajout d'un export CSV : tous les participants (avec une colonne par
-  badge) ou seulement ceux correspondant à un badge précis.
-- Protégé par la même capacité que l'affichage des badges, plus une
-  vérification de sesskey.
-- Refactorisation : la logique de correspondance des badges
-  (`badge_matcher`) et la construction de la requête SQL
-  (`participant_loader`) sont désormais partagées entre l'affichage à
-  l'écran et l'export, pour garantir qu'ils ne divergent jamais.
+- Added CSV export: all participants (with one column per badge), or just
+  those matching one specific badge.
+- Protected by the same capability as the badge display, plus a sesskey
+  check.
+- Refactor: the badge-matching logic (`badge_matcher`) and the SQL query
+  builder (`participant_loader`) are now shared between the on-screen
+  display and the export, so they can never drift apart.
 
 ### v2.2.0
-- Chaque badge peut désormais combiner une seconde condition (champ +
-  condition + valeur) avec la première, via ET/OU.
-- Entièrement optionnel : un badge sans second champ configuré (tous les
-  badges existants) se comporte exactement comme avant.
-- Tests ajoutés pour les combinaisons ET/OU.
+- Each badge can now combine a second condition (field + condition +
+  value) with the first, via AND/OR.
+- Fully optional: a badge with no second field configured (i.e. every
+  badge that existed before this feature) behaves exactly as before.
+- Added tests for the AND/OR combinations.
 
 ### v2.1.0
-- Généralisation à un nombre configurable de badges (jusqu'à 6, au lieu de 2
-  fixes), via des champs de réglages natifs (pas de JSON, pas de JS).
-- Ajout d'une icône optionnelle par badge (liste d'émojis Unicode curatée).
-- Les réglages des badges 1 et 2 sont conservés sous leurs noms de clés
-  d'origine : aucune reconfiguration nécessaire après mise à jour.
-- Ajout de tests pour `badge_config` et mise à jour des tests du renderer.
+- Generalised to a configurable number of badges (up to 6, instead of a
+  fixed 2), via native settings fields (no JSON, no JavaScript).
+- Added an optional icon per badge (curated Unicode emoji list).
+- Badges 1 and 2 keep their original setting key names: no reconfiguration
+  needed after upgrading.
+- Added tests for `badge_config` and updated the renderer tests.
 
 ### v2.0.0
-- Correction : les deux badges ne s'affichent plus pour tous les
-  participants par défaut sur une installation vierge.
-- Nouvelle capacité dédiée `block/pin_user:viewbadges`.
-- La requête ne montre plus que les inscriptions actives (s'appuie sur
-  `get_enrolled_sql()` au lieu de jointures manuelles).
-- Échappement du texte des badges (faille XSS stockée potentielle corrigée).
-- Couleurs par défaut des badges revues pour respecter le contraste WCAG AA.
-- Suppression de l'endpoint `css.php` au profit d'un court `<style>` inline
-  (une requête HTTP de moins par page, plus de maintenance de cache).
-- Sélection des champs de profil via menu déroulant (au lieu d'un champ texte
-  libre), avec lien direct vers la page d'administration des champs de
-  profil Moodle.
-- Ajout de tests unitaires PHPUnit.
-- Ajout d'un avertissement automatique à la mise à jour (`db/upgrade.php`) et
-  d'un rappel permanent dans les réglages au sujet du point « Permissions »
-  ci-dessus.
+- Fix: the two badges no longer show up for every participant by default
+  on a fresh install.
+- New dedicated `block/pin_user:viewbadges` capability.
+- The query now only shows active enrolments (relies on
+  `get_enrolled_sql()` instead of manual joins).
+- Badge text escaping (fixed a potential stored XSS vulnerability).
+- Reviewed default badge colours for WCAG AA contrast compliance.
+- Removed the `css.php` endpoint in favour of a short inline `<style>`
+  block (one fewer HTTP request per page, no more cache maintenance).
+- Profile field selection via dropdown (instead of a free-text field),
+  with a direct link to the Moodle profile fields admin page.
+- Added PHPUnit unit tests.
+- Added an automatic warning on upgrade (`db/upgrade.php`) and a permanent
+  reminder in the settings page about the "Permissions" point above.
