@@ -135,11 +135,18 @@ final class admin_setting_second_condition_test extends \advanced_testcase {
     public function test_non_array_data_is_ignored_without_error(): void {
         $this->resetAfterTest();
 
+        // Before this test even runs, Moodle's plugin install already called
+        // write_setting(get_defaultsetting()) once for this setting (as it
+        // does for every registered admin_setting), which explicitly stored
+        // '' for profilefield1b. So "nothing was written" here means the
+        // value stays at that default ('') rather than being entirely unset
+        // (which is what get_config() would return false for).
+        $before = (string) get_config('block_pin_user', 'profilefield1b');
+
         $setting = $this->make_setting();
         $result = $setting->write_setting('not-an-array');
 
         $this->assertSame('', $result);
-        // Nothing should have been written.
-        $this->assertFalse(get_config('block_pin_user', 'profilefield1b'));
+        $this->assertSame($before, (string) get_config('block_pin_user', 'profilefield1b'));
     }
 }
