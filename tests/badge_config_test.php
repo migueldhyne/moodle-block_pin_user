@@ -25,7 +25,6 @@ namespace block_pin_user;
  * @covers    \block_pin_user\badge_config
  */
 final class badge_config_test extends \advanced_testcase {
-
     public function test_unconfigured_site_returns_no_badges(): void {
         $this->resetAfterTest();
 

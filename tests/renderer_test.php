@@ -25,6 +25,30 @@ namespace block_pin_user;
  * @covers    \block_pin_user_renderer
  */
 final class renderer_test extends \advanced_testcase {
+    /**
+     * Builds a minimal participant row, including the additional name
+     * fields fullname() expects to find on the user object (firstnamephonetic,
+     * lastnamephonetic, middlename, alternatename) - without them, fullname()
+     * triggers a debugging() call asking the caller to update their SQL.
+     *
+     * @param array $overrides
+     * @return \stdClass
+     */
+    private function make_user(array $overrides = []): \stdClass {
+        $user = (object) [
+            'id' => 1,
+            'firstname' => 'Jean',
+            'lastname' => 'Dupont',
+            'firstnamephonetic' => '',
+            'lastnamephonetic' => '',
+            'middlename' => '',
+            'alternatename' => '',
+        ];
+        foreach ($overrides as $key => $value) {
+            $user->$key = $value;
+        }
+        return $user;
+    }
 
     /**
      * Builds a single badge config object.
@@ -58,10 +82,7 @@ final class renderer_test extends \advanced_testcase {
         global $PAGE;
         $renderer = $PAGE->get_renderer('block_pin_user');
 
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
-            'udf_profilefield1_value' => 'arachides',
-        ];
+        $user = $this->make_user(['udf_profilefield1_value' => 'arachides']);
 
         $html = $renderer->render_participant_with_pin($user, 2, [$this->make_badge()]);
 
@@ -76,7 +97,7 @@ final class renderer_test extends \advanced_testcase {
 
         // No 'udf_profilefield1_value' property at all == badge disabled,
         // regardless of what the condition would otherwise evaluate to.
-        $user = (object) ['id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont'];
+        $user = $this->make_user();
 
         $html = $renderer->render_participant_with_pin($user, 2, [$this->make_badge()]);
 
@@ -88,11 +109,10 @@ final class renderer_test extends \advanced_testcase {
         global $PAGE;
         $renderer = $PAGE->get_renderer('block_pin_user');
 
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
+        $user = $this->make_user([
             'udf_profilefield1_value' => 'present',
             'udf_profilefield2_value' => '',
-        ];
+        ]);
 
         $badges = [
             $this->make_badge(['index' => 1, 'text' => 'PAI']),
@@ -112,10 +132,7 @@ final class renderer_test extends \advanced_testcase {
         global $PAGE;
         $renderer = $PAGE->get_renderer('block_pin_user');
 
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
-            'udf_profilefield1_value' => 'present',
-        ];
+        $user = $this->make_user(['udf_profilefield1_value' => 'present']);
 
         $badge = $this->make_badge(['text' => '', 'icon' => '⚠️']);
         $html = $renderer->render_participant_with_pin($user, 2, [$badge]);
@@ -129,10 +146,7 @@ final class renderer_test extends \advanced_testcase {
         global $PAGE;
         $renderer = $PAGE->get_renderer('block_pin_user');
 
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
-            'udf_profilefield1_value' => 'present',
-        ];
+        $user = $this->make_user(['udf_profilefield1_value' => 'present']);
 
         $badge = $this->make_badge(['text' => '<script>alert(1)</script>']);
         $html = $renderer->render_participant_with_pin($user, 2, [$badge]);
@@ -148,10 +162,7 @@ final class renderer_test extends \advanced_testcase {
 
         // Second condition left empty: even though udf_profilefield1b_value would
         // fail an 'equals' check, it must be ignored entirely.
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
-            'udf_profilefield1_value' => 'present',
-        ];
+        $user = $this->make_user(['udf_profilefield1_value' => 'present']);
 
         $badge = $this->make_badge(); // Second field ('profilefieldb') is '' by default.
         $html = $renderer->render_participant_with_pin($user, 2, [$badge]);
@@ -172,11 +183,10 @@ final class renderer_test extends \advanced_testcase {
         ]);
 
         // Condition A true, condition B false -> AND must hide the badge.
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
+        $user = $this->make_user([
             'udf_profilefield1_value' => 'present',
             'udf_profilefield1b_value' => 'standard',
-        ];
+        ]);
         $html = $renderer->render_participant_with_pin($user, 2, [$badge]);
         $this->assertStringNotContainsString('custom-badge1', $html);
 
@@ -200,11 +210,10 @@ final class renderer_test extends \advanced_testcase {
         ]);
 
         // Condition A false, condition B true -> OR must still show the badge.
-        $user = (object) [
-            'id' => 1, 'firstname' => 'Jean', 'lastname' => 'Dupont',
+        $user = $this->make_user([
             'udf_profilefield1_value' => '',
             'udf_profilefield1b_value' => 'priorite',
-        ];
+        ]);
         $html = $renderer->render_participant_with_pin($user, 2, [$badge]);
         $this->assertStringContainsString('custom-badge1', $html);
 

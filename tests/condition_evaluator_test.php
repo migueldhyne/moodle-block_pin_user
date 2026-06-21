@@ -25,11 +25,14 @@ namespace block_pin_user;
  * @covers    \block_pin_user\condition_evaluator
  */
 final class condition_evaluator_test extends \advanced_testcase {
-
     /**
      * Tests condition_evaluator::evaluate() against a range of inputs.
      *
      * @dataProvider evaluate_provider
+     * @param string|null $fieldvalue The profile field value to test.
+     * @param string      $condition  The condition identifier to evaluate.
+     * @param string      $expected   The comparison value passed to evaluate().
+     * @param bool        $result     The expected boolean result.
      */
     public function test_evaluate(?string $fieldvalue, string $condition, string $expected, bool $result): void {
         $this->assertSame($result, condition_evaluator::evaluate($fieldvalue, $condition, $expected));

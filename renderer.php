@@ -36,7 +36,6 @@ use block_pin_user\badge_config;
  * participant names and conditional badges based on user profile fields.
  */
 class block_pin_user_renderer extends plugin_renderer_base {
-
     /**
      * Renders a participant's name along with any badges whose condition is met.
      *

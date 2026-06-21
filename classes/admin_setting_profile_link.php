@@ -31,7 +31,6 @@ namespace block_pin_user;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_profile_link extends \admin_setting {
-
     /**
      * Constructor.
      */

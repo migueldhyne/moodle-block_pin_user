@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026062109;            // Plugin version (date-based numbering).
+$plugin->version   = 2026062111;            // Plugin version (date-based numbering).
 $plugin->requires  = 2021051700;            // Requires Moodle version 3.11 or higher.
 $plugin->component = 'block_pin_user';      // Full name of the plugin (used for diagnostics).
 $plugin->maturity  = MATURITY_STABLE;       // Plugin maturity level.
-$plugin->release   = 'v2.5.2';              // Release version.
+$plugin->release   = 'v2.5.4';              // Release version.

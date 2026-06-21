@@ -28,7 +28,6 @@ namespace block_pin_user;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class badge_matcher {
-
     /**
      * Whether the given badge's condition(s) are met for the given user row.
      *

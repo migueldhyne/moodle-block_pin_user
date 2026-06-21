@@ -25,6 +25,18 @@ namespace block_pin_user;
  * @covers    \block_pin_user\admin_setting_second_condition
  */
 final class admin_setting_second_condition_test extends \advanced_testcase {
+    /**
+     * Loads lib/adminlib.php before each test, since the parent class
+     * (\admin_setting) is not autoloaded.
+     */
+    protected function setUp(): void {
+        parent::setUp();
+        // The admin_setting class (which admin_setting_second_condition
+        // extends) lives in lib/adminlib.php, which is only loaded on admin
+        // pages and is not autoloaded - it must be required explicitly here.
+        global $CFG;
+        require_once($CFG->libdir . '/adminlib.php');
+    }
 
     /**
      * Builds an instance for badge 1 with the standard option sets.

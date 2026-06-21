@@ -29,7 +29,6 @@ namespace block_pin_user;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class participant_loader {
-
     /**
      * Builds the participant-listing SQL and its matching count SQL.
      *
@@ -41,7 +40,7 @@ final class participant_loader {
         // Only actively enrolled users (excludes suspended enrolments and
         // enrolments outside their start/end window), built on Moodle's own
         // tested enrolment API rather than hand-rolled joins.
-        list($enrolsql, $enrolparams) = get_enrolled_sql($context, '', 0, true);
+        [$enrolsql, $enrolparams] = get_enrolled_sql($context, '', 0, true);
         $params = $enrolparams;
 
         $fieldselects = '';

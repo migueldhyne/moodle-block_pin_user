@@ -31,7 +31,6 @@
  * participants page.
  */
 class block_pin_user extends block_base {
-
     /**
      * Initializes the block's title using the localized plugin name.
      *
@@ -111,8 +110,10 @@ class block_pin_user extends block_base {
         }
 
         // Check for participants page.
-        if ($this->page->pagetype !== 'course-participants'
-            && !$this->page->url->compare(new moodle_url('/user/index.php'), URL_MATCH_BASE)) {
+        if (
+            $this->page->pagetype !== 'course-participants'
+            && !$this->page->url->compare(new moodle_url('/user/index.php'), URL_MATCH_BASE)
+        ) {
             $this->content = null;
             return $this->content;
         }

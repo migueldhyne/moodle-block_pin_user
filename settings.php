@@ -40,7 +40,6 @@ if ($hassiteconfig) {
     );
 
     if ($ADMIN->fulltree) {
-
         // Build the list of custom profile fields that actually exist on this
         // site, so the admin picks from a real list instead of typing a
         // shortname blindly. An empty/"none" value means the badge is
@@ -153,7 +152,10 @@ if ($hassiteconfig) {
             // these four underlying values are tucked away here instead of
             // always taking up four extra rows.
             $settings->add(new \block_pin_user\admin_setting_second_condition(
-                $i, $fieldoptions, $conditionoptions, $combinatoroptions
+                $i,
+                $fieldoptions,
+                $conditionoptions,
+                $combinatoroptions
             ));
 
             $settings->add(new admin_setting_configselect(

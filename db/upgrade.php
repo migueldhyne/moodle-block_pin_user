@@ -45,6 +45,8 @@ function xmldb_block_pin_user_upgrade($oldversion) {
         // be visible for a CLI upgrade) - see also the permanent reminder on
         // this plugin's settings page.
         \core\notification::warning(get_string('upgradenotice_v2', 'block_pin_user'));
+
+        upgrade_block_savepoint(true, 2026062100, 'pin_user');
     }
 
     if ($oldversion < 2026062101) {
@@ -53,6 +55,8 @@ function xmldb_block_pin_user_upgrade($oldversion) {
         // keys, so nothing is lost or needs reconfiguring - this is purely
         // informational.
         \core\notification::info(get_string('upgradenotice_v3', 'block_pin_user', \block_pin_user\badge_config::MAX_BADGES));
+
+        upgrade_block_savepoint(true, 2026062101, 'pin_user');
     }
 
     if ($oldversion < 2026062102) {
@@ -61,19 +65,26 @@ function xmldb_block_pin_user_upgrade($oldversion) {
         // (the default, and every badge set up before this feature existed)
         // behave exactly as before.
         \core\notification::info(get_string('upgradenotice_v4', 'block_pin_user'));
+
+        upgrade_block_savepoint(true, 2026062102, 'pin_user');
     }
 
     if ($oldversion < 2026062103) {
         // Version 2.3.0: adds a CSV export link above the participant list.
         \core\notification::info(get_string('upgradenotice_v5', 'block_pin_user'));
+
+        upgrade_block_savepoint(true, 2026062103, 'pin_user');
     }
 
     if ($oldversion < 2026062107) {
-        // Version 2.5.0: the optional second-condition fields move to a separate
-        // "Advanced conditions" settings page. This only reorganises the
-        // settings form; the underlying config values are untouched (a config
-        // value is keyed by plugin + setting name, not by which page renders it).
+        // Version 2.5.x: each badge's optional second condition (AND/OR) is now
+        // a small collapsible "Combine with a second condition" toggle, right
+        // below that badge's comparison value field, instead of always being
+        // shown. The underlying config values are untouched (a config value is
+        // keyed by plugin + setting name, not by which admin_setting renders it).
         \core\notification::info(get_string('upgradenotice_v6', 'block_pin_user'));
+
+        upgrade_block_savepoint(true, 2026062107, 'pin_user');
     }
 
     return true;

@@ -25,7 +25,6 @@ namespace block_pin_user;
  * @covers    \block_pin_user\badge_matcher
  */
 final class badge_matcher_test extends \advanced_testcase {
-
     /**
      * Builds a minimal badge config object for testing, with overrides.
      *

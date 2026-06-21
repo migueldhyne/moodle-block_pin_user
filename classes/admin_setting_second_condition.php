@@ -41,7 +41,6 @@ namespace block_pin_user;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_second_condition extends \admin_setting {
-
     /** @var int The badge number (1-based) this widget belongs to. */
     private int $badgeindex;
 
