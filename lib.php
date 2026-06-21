@@ -17,22 +17,11 @@
 /**
  * Library file for the block_pin_user plugin.
  *
- * This file contains functions and callbacks specific to the block_pin_user plugin.
+ * Intentionally left without callbacks for now: block settings are picked up
+ * automatically by Moodle from settings.php (because has_config() returns
+ * true), no plugin-specific lib callback is required for that to work.
  *
  * @package   block_pin_user
- * @copyright 2024, Miguël Dhyne <miguel.dhyne@gmail.com>
+ * @copyright 2025, Miguël Dhyne <miguel.dhyne@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-/**
- * Adds settings for the block_pin_user plugin to the admin settings tree.
- *
- * This function is automatically called by Moodle when building the admin settings tree.
- * It allows the plugin to define configurable settings in settings.php.
- *
- * @param admin_settingpage $settings The settings page for this plugin.
- * @param admin_root $adminroot The full admin tree (unused but required by signature).
- * @return void
- */
-function block_pin_user_plugin_settings($settings, $adminroot) {
-}

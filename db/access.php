@@ -25,13 +25,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
+
+    // Note: the 'editingteacher' archetype is the standard editing "Teacher"
+    // role; 'teacher' is the *non-editing* teacher. The previous version of
+    // this file only granted 'teacher', so the main Teacher role could not
+    // add the block by default - that has been corrected below.
     'block/pin_user:myaddinstance' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
-            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
-            'siteadmin' => CAP_ALLOW,
         ],
         'clonepermissionsfrom' => 'moodle/my:manageblocks',
     ],
@@ -41,10 +45,23 @@ $capabilities = [
         'captype' => 'write',
         'contextlevel' => CONTEXT_BLOCK,
         'archetypes' => [
-            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
-            'siteadmin' => CAP_ALLOW,
         ],
         'clonepermissionsfrom' => 'moodle/site:manageblocks',
+    ],
+
+    // Dedicated capability controlling who can actually *see* the badges in
+    // the block's content, separate from the generic 'moodle/course:manageactivities'
+    // capability used previously. Badges can surface sensitive profile data
+    // (e.g. health information), so this lets a site admin fine-tune
+    // visibility independently of unrelated course-management permissions.
+    'block/pin_user:viewbadges' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
     ],
 ];

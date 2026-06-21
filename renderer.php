@@ -15,16 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library file for the block_pin_user plugin.
+ * Renderer file for the block_pin_user plugin.
  *
  * This file defines the renderer for the Pin User block in Moodle,
- * which generates a link to each user’s profile and appends custom
+ * which generates a link to each user's profile and appends custom
  * badges based on conditions applied to their profile fields.
  *
  * @package   block_pin_user
  * @copyright 2025, Miguël Dhyne <miguel.dhyne@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use block_pin_user\badge_matcher;
+use block_pin_user\badge_config;
 
 /**
  * Renderer class for the block_pin_user plugin.
@@ -33,46 +36,29 @@
  * participant names and conditional badges based on user profile fields.
  */
 class block_pin_user_renderer extends plugin_renderer_base {
+
     /**
-     * Renders a participant's name along with custom badges based on profile field conditions.
+     * Renders a participant's name along with any badges whose condition is met.
      *
-     * This function generates an HTML block displaying the participant's name
-     * (as a link to their profile) and one or two badges, depending on whether
-     * specific profile field values match configured conditions.
-     *
-     * @param stdClass $user The user record, including custom profile field values.
-     * @return string HTML output for the participant line with optional badges.
+     * @param stdClass   $user     The user record, including custom profile field values
+     *                             (only present on the property matching a configured badge).
+     * @param int        $courseid The id of the course the participants page belongs to.
+     * @param stdClass[] $badges   The active badge config objects, as returned by
+     *                             \block_pin_user\badge_config::get_global_badges().
+     * @return string HTML output for the participant line with any matching badges.
      */
-    public function render_participant_with_pin($user) {
+    public function render_participant_with_pin($user, $courseid, array $badges) {
 
-        // Create the profile URL for the user.
-        $courseid = required_param('id', PARAM_INT);
         $profileurl = new moodle_url('/user/view.php', ['id' => $user->id, 'course' => $courseid]);
-
-        // Get the user's full name and create a link to their profile.
         $fullname = html_writer::link($profileurl, fullname($user));
 
-        // Start HTML block.
         $html = html_writer::start_tag('div', ['class' => 'block_pin_user participant-name']);
-
         $html .= ' ' . $fullname;
 
-        // Get plugin configuration.
-        $text1 = get_config('block_pin_user', 'text1');
-        $text2 = get_config('block_pin_user', 'text2');
-        $profilefield1value = get_config('block_pin_user', 'profilefield1value');
-        $profilefield1condition = get_config('block_pin_user', 'profilefield1condition');
-        $profilefield2value = get_config('block_pin_user', 'profilefield2value');
-        $profilefield2condition = get_config('block_pin_user', 'profilefield2condition');
-
-        // Check profilefield1 condition.
-        if ($this->evaluate_condition($user, 'udf_profilefield1_value', $profilefield1condition, $profilefield1value)) {
-            $html .= $this->render_badge($text1, 'custom-badge1');
-        }
-
-        // Check profilefield2 condition.
-        if ($this->evaluate_condition($user, 'udf_profilefield2_value', $profilefield2condition, $profilefield2value)) {
-            $html .= $this->render_badge($text2, 'custom-badge2');
+        foreach ($badges as $badge) {
+            if (badge_matcher::matches($user, $badge)) {
+                $html .= $this->render_badge($badge);
+            }
         }
 
         $html .= html_writer::end_tag('div');
@@ -82,54 +68,47 @@ class block_pin_user_renderer extends plugin_renderer_base {
     /**
      * Returns an HTML span element used as a badge.
      *
-     * This method generates a <span> tag with the given text and CSS class,
-     * typically used to display badges next to participant names.
+     * Both the badge text and icon are admin-configured settings, so the
+     * text is explicitly escaped here: admin_setting_configtext does not
+     * guarantee the value is HTML-safe, and this badge is rendered on every
+     * page load of the participants page for every visitor with the right
+     * capability. The icon is a fixed Unicode character chosen from a
+     * curated list (see badge_config::icon_options()), so it does not need
+     * escaping, but it is still wrapped so it can be hidden from screen
+     * readers when accompanied by text (to avoid announcing it twice).
      *
-     * @param string $text  The label to display inside the badge.
-     * @param string $class The CSS class to apply for styling the badge.
-     * @return string HTML span element representing the badge.
+     * @param stdClass $badge The badge config object (index, icon, text, ...).
+     * @return string HTML span element representing the badge, or '' if there is nothing to show.
      */
-    private function render_badge($text, $class) {
-        return html_writer::tag('span', $text, ['class' => $class]);
-    }
+    private function render_badge($badge) {
+        $text = trim((string) $badge->text);
+        $icon = trim((string) $badge->icon);
 
-    /**
-     * Evaluates a condition against a user's custom profile field value.
-     *
-     * Supported conditions include:
-     * - 'isempty': checks if the field is empty.
-     * - 'isnotempty': checks if the field is not empty.
-     * - 'equals': checks for exact match with the expected value.
-     * - 'contains': checks if the field contains the expected substring.
-     * - 'notcontains': checks if the field does not contain the expected substring.
-     *
-     * @param stdClass $user      The user object containing custom profile field values.
-     * @param string   $fieldkey  The name of the user property to check (e.g., 'udf_profilefield1_value').
-     * @param string   $condition The condition to evaluate ('isempty', 'equals', etc.).
-     * @param string   $expected  The value to compare the field against.
-     * @return bool True if the condition is met, false otherwise.
-     */
-    private function evaluate_condition($user, $fieldkey, $condition, $expected) {
-
-        if (!isset($user->{$fieldkey})) {
-            return false;
+        if ($text === '' && $icon === '') {
+            return '';
         }
 
-        $fieldvalue = $user->{$fieldkey};
+        $inner = '';
+        $classes = "pin-user-badge custom-badge{$badge->index}";
+        $attributes = ['class' => $classes];
 
-        switch ($condition) {
-            case 'isempty':
-                return empty($fieldvalue);
-            case 'isnotempty':
-                return !empty($fieldvalue);
-            case 'equals':
-                return $fieldvalue === $expected;
-            case 'contains':
-                return strpos($fieldvalue, $expected) !== false;
-            case 'notcontains':
-                return strpos($fieldvalue, $expected) === false;
-            default:
-                return false;
+        if ($icon !== '') {
+            if ($text !== '') {
+                // Icon is decorative once the text already conveys the meaning.
+                $inner .= html_writer::tag('span', $icon, ['aria-hidden' => 'true', 'class' => 'pin-user-badge-icon']);
+            } else {
+                // Icon-only badge: give it a meaningful label for screen readers,
+                // derived from the same curated list used to build the admin dropdown.
+                $iconlabel = badge_config::icon_options()[$icon] ?? null;
+                $attributes['aria-label'] = $iconlabel ? get_string($iconlabel, 'block_pin_user') : $icon;
+                $inner .= html_writer::tag('span', $icon, ['aria-hidden' => 'true', 'class' => 'pin-user-badge-icon']);
+            }
         }
+
+        if ($text !== '') {
+            $inner .= s($text);
+        }
+
+        return html_writer::tag('span', $inner, $attributes);
     }
 }

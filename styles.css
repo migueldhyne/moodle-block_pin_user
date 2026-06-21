@@ -1,0 +1,101 @@
+/**
+ * Static styles for the block_pin_user plugin.
+ *
+ * Moodle automatically includes any "styles.css" file found at the root of a
+ * plugin, so this file does not need to be required manually anywhere.
+ *
+ * Only structural, non-configurable rules live here. The badge colours are
+ * admin-configurable per badge, so they are written out as a small inline
+ * <style> block by block_pin_user::get_content() instead of being hardcoded
+ * here. The colours below are only a safety-net fallback in case that
+ * inline block fails to load for any reason.
+ */
+
+.block_pin_user.participant-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.block_pin_user .pin-user-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 5px;
+    font-size: 0.8em;
+    line-height: 1.4;
+    white-space: nowrap;
+    /* Fallback colours, overridden per-badge by the inline <style> block. */
+    background-color: #1e7e34;
+    color: #ffffff;
+}
+
+.block_pin_user .pin-user-badge-icon {
+    margin-right: 3px;
+}
+
+.block_pin_user-export {
+    font-size: 0.85em;
+    margin: 4px 0 8px 0;
+}
+
+.block_pin_user-export a {
+    margin-right: 4px;
+}
+
+/* Settings page: collapsible "second condition" widget. */
+.block_pin_user-secondcondition {
+    margin-top: 4px;
+}
+
+.block_pin_user-secondcondition > summary {
+    cursor: pointer;
+    color: #0a58ca;
+    font-size: 0.85em;
+    list-style: none;
+}
+
+.block_pin_user-secondcondition > summary::-webkit-details-marker {
+    display: none;
+}
+
+.block_pin_user-secondcondition > summary::before {
+    content: "▸ ";
+}
+
+.block_pin_user-secondcondition[open] > summary::before {
+    content: "▾ ";
+}
+
+.block_pin_user-secondcondition > summary:hover {
+    text-decoration: underline;
+}
+
+.block_pin_user-secondcondition-fields {
+    margin-top: 10px;
+    padding-left: 14px;
+    border-left: 2px solid #e0e0e0;
+}
+
+.block_pin_user-secondcondition-row {
+    margin-bottom: 12px;
+}
+
+.block_pin_user-secondcondition-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.block_pin_user-secondcondition-row select,
+.block_pin_user-secondcondition-row input[type="text"] {
+    max-width: 400px;
+}
+
+.block_pin_user-secondcondition-desc {
+    color: #6a737c;
+    font-size: 0.85em;
+    margin: 4px 0 0 0;
+}

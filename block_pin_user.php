@@ -27,7 +27,7 @@
  *
  * This block shows a list of enrolled users in a course along with customized
  * badges based on specific user profile fields. It is only visible to users who
- * have the capability to manage course activities and is only displayed on the
+ * have the block/pin_user:viewbadges capability and is only displayed on the
  * participants page.
  */
 class block_pin_user extends block_base {
@@ -51,24 +51,61 @@ class block_pin_user extends block_base {
     }
 
     /**
+     * Restricts where this block can be added.
+     *
+     * The block only ever renders content on the course participants page, so
+     * there is no point letting admins/teachers add it to the dashboard, the
+     * front page, or inside an activity - it would just sit there empty and
+     * be confusing. Restricting it here keeps the block picker UI honest.
+     *
+     * @return array
+     */
+    public function applicable_formats() {
+        return [
+            'all' => false,
+            'course-view' => true,
+        ];
+    }
+
+    /**
+     * A single instance of this block only makes sense once per course.
+     *
+     * @return bool
+     */
+    public function instance_allow_multiple() {
+        return false;
+    }
+
+    /**
      * Generates the content of the block to be displayed on the participants page.
      *
-     * The content is only shown if the user has the 'moodle/course:manageactivities' capability
-     * and if the current page is the course participants page.
-     * It displays a paginated list of participants with custom badges based on two user profile fields.
+     * The content is only shown if the user has the block/pin_user:viewbadges
+     * capability and if the current page is the course participants page.
+     * It displays a paginated list of actively enrolled participants with
+     * badges based on the profile fields configured in the plugin settings
+     * (see \block_pin_user\badge_config::MAX_BADGES for the maximum count).
      *
      * @return stdClass|null Object containing the HTML content to display, or null if not applicable.
      */
     public function get_content() {
-        global $DB, $COURSE, $USER, $OUTPUT;
+        global $DB, $COURSE, $OUTPUT;
 
         // Ensure content is only generated once.
         if ($this->content !== null) {
             return $this->content;
         }
 
-        // Check capability.
-        if (!has_capability('moodle/course:manageactivities', context_course::instance($COURSE->id))) {
+        $this->content = new stdClass();
+        $this->content->text = '';
+        $this->content->footer = '';
+
+        $context = context_course::instance($COURSE->id);
+
+        // Check capability. Uses a capability dedicated to this block rather than
+        // a loosely related core capability, so site admins can grant/restrict
+        // visibility of these (potentially sensitive) badges independently of
+        // who can manage course activities.
+        if (!has_capability('block/pin_user:viewbadges', $context)) {
             $this->content = null;
             return $this->content;
         }
@@ -80,84 +117,119 @@ class block_pin_user extends block_base {
             return $this->content;
         }
 
-        // Load the CSS file for styling the badge.
-        $this->page->requires->css(new moodle_url('/blocks/pin_user/css.php'));
-
         // Pagination parameters.
         $page    = optional_param('page', 0, PARAM_INT);
         $perpage = 25;
 
-        // Retrieve profile-field settings.
-        $profilefield1 = get_config('block_pin_user', 'profilefield1');
-        $profilefield2 = get_config('block_pin_user', 'profilefield2');
+        // Only configured badges are returned here - an unconfigured badge
+        // (no profile field selected) never even appears in this list,
+        // instead of accidentally matching everyone via "is empty".
+        $badges = \block_pin_user\badge_config::get_global_badges();
 
-        // Base SQL to fetch participants + custom field values.
-        $sql = "SELECT DISTINCT
-                    u.id, u.firstname, u.lastname, u.email, u.firstnamephonetic, u.lastnamephonetic, u.middlename,
-                    u.alternatename,
-                    udf1.data AS udf_profilefield1_value,
-                    udf2.data AS udf_profilefield2_value
-                FROM {user} u
-                LEFT JOIN {user_info_data} udf1
-                    ON u.id = udf1.userid
-                    AND udf1.fieldid = (SELECT id FROM {user_info_field} WHERE shortname = :profilefield1)
-                LEFT JOIN {user_info_data} udf2
-                    ON u.id = udf2.userid
-                    AND udf2.fieldid = (SELECT id FROM {user_info_field} WHERE shortname = :profilefield2)
-                JOIN {user_enrolments} ue
-                    ON u.id = ue.userid
-                JOIN {enrol} e
-                    ON ue.enrolid = e.id
-                WHERE
-                    u.deleted = 0
-                    AND e.courseid = :courseid";
+        [$sql, $countsql, $params, $enrolparams] = \block_pin_user\participant_loader::build_sql($context, $badges);
 
-        $params = [
-            'profilefield1' => $profilefield1,
-            'profilefield2' => $profilefield2,
-            'courseid'      => required_param('id', PARAM_INT),
-        ];
-
-        // Count total participants for paging.
-        $countsql = "SELECT COUNT(DISTINCT u.id)
-                     FROM {user} u
-                     LEFT JOIN {user_info_data} udf1
-                         ON u.id = udf1.userid
-                         AND udf1.fieldid = (SELECT id FROM {user_info_field} WHERE shortname = :profilefield1)
-                     LEFT JOIN {user_info_data} udf2
-                         ON u.id = udf2.userid
-                         AND udf2.fieldid = (SELECT id FROM {user_info_field} WHERE shortname = :profilefield2)
-                     JOIN {user_enrolments} ue
-                         ON u.id = ue.userid
-                     JOIN {enrol} e
-                         ON ue.enrolid = e.id
-                     WHERE
-                         u.deleted = 0
-                         AND e.courseid = :courseid";
-
-        $totalcount = $DB->count_records_sql($countsql, $params);
-
-        // Fetch only the current page.
-        $participants = $DB->get_records_sql(
-            $sql,
-            $params,
-            $page * $perpage,
-            $perpage
-        );
+        $totalcount = $DB->count_records_sql($countsql, $enrolparams);
+        $participants = $DB->get_records_sql($sql, $params, $page * $perpage, $perpage);
 
         // Prepare renderer and paging controls.
         $renderer = $this->page->get_renderer('block_pin_user');
         $baseurl  = $this->page->url;
         $paging   = $OUTPUT->paging_bar($totalcount, $page, $perpage, $baseurl);
 
-        // Build content.
-        $this->content        = new stdClass();
-        $this->content->text  = $paging;
+        // The badge colours are admin-configurable, so they are written out
+        // as a small inline style block here instead of going through a
+        // separate dynamic css.php endpoint: one fewer HTTP request per page
+        // load, no extra caching headers to maintain, and the colours are
+        // defensively stripped down to safe characters before being echoed.
+        $this->content->text .= $this->badge_style($badges);
+        $this->content->text .= $this->export_links($COURSE->id, $badges);
+        $this->content->text .= $paging;
         foreach ($participants as $participant) {
-            $this->content->text .= $renderer->render_participant_with_pin($participant);
+            $this->content->text .= $renderer->render_participant_with_pin($participant, $COURSE->id, $badges);
         }
         $this->content->text .= $paging;
 
         return $this->content;
+    }
+
+    /**
+     * Builds the "Export" links shown above the participant list: one for
+     * every active badge (CSV of just that badge's matching participants),
+     * plus one combined export with every badge as a column.
+     *
+     * @param int          $courseid The course id, used to build the export URL.
+     * @param \stdClass[]  $badges   The active badge config objects.
+     * @return string HTML, or '' if there is nothing to export.
+     */
+    private function export_links(int $courseid, array $badges): string {
+        if (empty($badges)) {
+            return '';
+        }
+
+        $links = [];
+
+        $allurl = new moodle_url('/blocks/pin_user/export.php', [
+            'courseid' => $courseid,
+            'sesskey' => sesskey(),
+        ]);
+        $links[] = html_writer::link($allurl, get_string('exportall', 'block_pin_user'));
+
+        foreach ($badges as $badge) {
+            $url = new moodle_url('/blocks/pin_user/export.php', [
+                'courseid' => $courseid,
+                'badge' => $badge->index,
+                'sesskey' => sesskey(),
+            ]);
+            $links[] = html_writer::link($url, s(\block_pin_user\badge_config::label($badge)));
+        }
+
+        return html_writer::tag(
+            'div',
+            get_string('exportlabel', 'block_pin_user') . ' ' . implode(' · ', $links),
+            ['class' => 'block_pin_user-export']
+        );
+    }
+
+    /**
+     * Builds a small inline <style> block applying the admin-configured badge colours.
+     *
+     * @param \stdClass[] $badges The active badge config objects.
+     * @return string HTML <style> element.
+     */
+    private function badge_style(array $badges): string {
+        $css = '';
+        foreach ($badges as $badge) {
+            $bg = $this->sanitise_css_colour($badge->bgcolor, '#1e7e34');
+            $color = $this->sanitise_css_colour($badge->color, '#ffffff');
+            $css .= ".block_pin_user .custom-badge{$badge->index} { background-color: {$bg}; color: {$color}; }";
+        }
+        return html_writer::tag('style', $css);
+    }
+
+    /**
+     * Defensively restricts a colour setting to characters that are valid in a
+     * CSS colour value (hex codes or CSS colour keywords), falling back to a
+     * safe default otherwise. admin_setting_configcolourpicker already
+     * validates its input on save, this is a defence-in-depth second check
+     * since the value is echoed directly into a <style> tag.
+     *
+     * @param mixed  $value   The raw config value.
+     * @param string $default Fallback if the value doesn't look like a valid colour.
+     * @return string
+     */
+    private function sanitise_css_colour($value, string $default): string {
+        $value = trim((string) $value);
+
+        // Hex colour, with or without the leading '#' (3 to 8 hex digits).
+        if (preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) {
+            return ($value[0] === '#') ? $value : ('#' . $value);
+        }
+
+        // CSS named colour (e.g. "white", "navy").
+        if (preg_match('/^[a-zA-Z]{3,20}$/', $value)) {
+            return $value;
+        }
+
+        return $default;
     }
 }
